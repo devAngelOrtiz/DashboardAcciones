@@ -1,0 +1,40 @@
+services:
+  db:
+    profiles: ["db", "api", "all"]
+    image: cockroachdb/cockroach:latest-v24.3
+    command: start-single-node --insecure
+    ports:
+      - "26257:26257"
+      - "8080:8080"
+    volumes:
+      - cockroach_data:/cockroach/cockroach-data
+
+  backend:
+    profiles: ["api", "all"]
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "${PORT}:${PORT}"
+    depends_on:
+      - db
+    volumes:
+      - ./backend:/api
+    working_dir: /api
+
+  frontend:
+    profiles: ["front", "all"]
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "${FRONT_PORT}:${FRONT_PORT}"
+    depends_on:
+      - api
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    working_dir: /app
+
+volumes:
+  cockroach_data:

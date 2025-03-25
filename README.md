@@ -3,9 +3,7 @@ Este repositorio contiene la solucion para el desafio de desarrollo que consiste
 - Conectar con una API para descargar informacion.
 - Almacenar la informacion obtenida en CockroachDB.
 - Crear una API y una interfaz de usuario para visualizar los datos.
-- Desarrollar un algoritmo que recomiende las mejores acciones para invertir.
-
----
+- Desarrollar un algoritmo que recomiende las mejores acciones para invertir*.
 
 ## Descripcion
 
@@ -39,17 +37,19 @@ El objetivo del proyecto es construir un sistema que se conecte a una API REST p
 2. **Configurar el entorno:**
 
    - Configura las variables de entorno necesarias:
-
-```
-./.env
-PORT=3000
-FRONT_PORT=8080
-```
-```
-./backend/.env
-DATABASE_URL=postgresql://root@db:26257/defaultdb?sslmode=disable
-INFO_URL=
-INFO_JWT=
+   ```
+   configuracion para dockers
+   ./.env
+   
+   PORT=3000
+   FRONT_PORT=8080
+   ```
+   ```
+   configuracion para el api de backedn
+   ./backend/.env
+   DATABASE_URL=postgresql://root@db:26257/defaultdb?sslmode=disable
+   INFO_URL=
+   INFO_JWT=
 ```
    - Asegurate de tener instalados Docker.
 

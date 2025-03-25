@@ -2,19 +2,20 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	"api/common"
 	"api/scrapers"
+	"api/stock"
 
+	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
 
 func main() {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatalf("Error al cargar .env: %v", err)
+		log.Fatalf("❌ Error al cargar .env: %v", err)
 	}
 
 	conn, err := common.GetDBConnection()
@@ -28,5 +29,11 @@ func main() {
 		log.Fatalf("❌ Error al hacer scraping y almacenar los datos: %v", err)
 	}
 
-	fmt.Println("✅ Datos almacenados exitosamente")
+	r := gin.Default()
+
+	v1 := r.Group("/api")
+
+	stock.StockRegister(v1.Group("/stock"), conn)
+
+	r.Run(":3000")
 }

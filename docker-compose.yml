@@ -15,7 +15,7 @@ services:
       context: .
       dockerfile: ./backend/Dockerfile
     ports:
-      - "${PORT}:${PORT}"
+      - "3000:${PORT}"
     volumes:
       - ./backend:/api
 

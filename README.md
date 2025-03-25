@@ -38,30 +38,45 @@ El objetivo del proyecto es construir un sistema que se conecte a una API REST p
 
 2. **Configurar el entorno:**
 
-   - Configura las variables de entorno necesarias para el backend en el archivo .env.
+   - Configura las variables de entorno necesarias:
+
+```
+./.env
+PORT=3000
+FRONT_PORT=8080
+```
+```
+./backend/.env
+DATABASE_URL=postgresql://root@db:26257/defaultdb?sslmode=disable
+INFO_URL=
+INFO_JWT=
+```
    - Asegurate de tener instalados Docker.
 
-3. **Instalar dependencias:**
-
-   - **Backend:** Navega al directorio `/backend` y ejecuta:
-   ```bash
-   go mod download
-   ```
-   - **Frontend:** Navega al directorio `/frontend` y ejecuta:
-   ```bash
-   npm install
-   ```
-
-4. **Ejecutar la aplicacion:**
+3. **Ejecutar la aplicacion:**
 
    - Levantar la base de datos, api y frontend:
    ```bash
-   docker-compose up
+   docker-compose --profile all up
+   ```
+
+   si prefieres iniciarlos individualmente usa los siguieentes comandos
+   - Levantar base de datos:
+   ```bash
+   docker-compose --profile db up
+   ```
+   - Levantar api:
+   ```bash
+   docker-compose --profile api up
+   ```
+   - Levantar frontend:
+   ```bash
+   docker-compose --profile front up
    ```
 ---
 
 ## Uso y Ejecucion
 
-- **Visualizacion:** Accede a la interfaz web para ver el listado de acciones, su analisis y las recomendaciones de inversion.
+- **Visualizacion:** Accede a la interfaz web para ver el listado de acciones, su analisis y las recomendaciones de inversion*.
 - **API:** Utiliza los endpoints provistos por el backend para interactuar con la informacion almacenada.
 - **Analisis:** El algoritmo implementado procesa los datos de la base de datos y muestra la recomenda

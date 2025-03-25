@@ -1,9 +1,9 @@
 FROM golang
 
-COPY go.mod go.sum ./
-RUN go mod download
+WORKDIR /api
 
-COPY . .
+COPY ./backend/go.mod ./backend/go.sum ./
+RUN go mod download
 
 RUN go install github.com/air-verse/air@latest
 

@@ -9,7 +9,7 @@ import (
 )
 
 func StockRegister(router *gin.RouterGroup, conn *pgx.Conn) {
-	router.GET("/", func(c *gin.Context) {
+	router.GET("", func(c *gin.Context) {
 		StockRetrieve(c, conn)
 	})
 }
@@ -25,12 +25,14 @@ func StockRetrieve(c *gin.Context, conn *pgx.Conn) {
 		total = 10
 	}
 
-	stocks, err := GetStocks(c.Request.Context(), conn, page, total)
+	search := c.DefaultQuery("search", "")
+
+	paginated, err := GetStocks(c.Request.Context(), conn, page, total, search)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"stocks": stocks})
+	c.JSON(http.StatusOK, paginated)
 }

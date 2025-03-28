@@ -17,7 +17,7 @@ services:
     ports:
       - "3000:${PORT}"
     volumes:
-      - ./backend:/api
+      - ./backend:/api:cached 
 
 
   frontend:
@@ -26,10 +26,14 @@ services:
       context: .
       dockerfile: ./frontend/Dockerfile
     ports:
-      - "${FRONT_PORT}:${FRONT_PORT}"
+      - "${FRONT_PORT}:4000"
     volumes:
-      - ./frontend:/app
+      - ./frontend/dashboard:/app:cached 
       - /app/node_modules
+    environment:
+      - HOST=0.0.0.0
+      - CHOKIDAR_USEPOLLING=true
+      - CHOKIDAR_INTERVAL=100
 
 volumes:
   cockroach_data:

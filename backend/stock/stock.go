@@ -3,6 +3,7 @@ package stock
 import (
 	"context"
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/google/uuid"
@@ -22,6 +23,13 @@ type Stock struct {
 	Time       time.Time `json:"time"`
 }
 
+type PaginatedStocks struct {
+	Stocks []Stock `json:"stocks"`
+	Total  int     `json:"total"`
+	Pages  int     `json:"pages"`
+	Page   int     `json:"page"`
+}
+
 const defaultPage = 1
 const defaultTotal = 10
 
@@ -37,12 +45,57 @@ func InsertData(conn *pgx.Conn, stock Stock) error {
 	return nil
 }
 
-func GetStocks(ctx context.Context, conn *pgx.Conn, page, total int) ([]Stock, error) {
-	offset := (page - 1) * total
-	rows, err := conn.Query(ctx, `SELECT * FROM stock ORDER BY time DESC LIMIT $1 OFFSET $2`, total, offset)
+const (
+	querySearchStocks = `
+		SELECT * FROM stock 
+		WHERE brokerage ILIKE $1 
+		ORDER BY time DESC 
+		LIMIT $2 OFFSET $3`
+	queryCountStocksSearch = `SELECT COUNT(*) FROM stock WHERE brokerage ILIKE $1`
 
+	queryStocks = `
+		SELECT * FROM stock 
+		ORDER BY time DESC 
+		LIMIT $1 OFFSET $2`
+	queryCountStocks = `SELECT COUNT(*) FROM stock`
+)
+
+func GetStocks(ctx context.Context, conn *pgx.Conn, page, total int, search string) (*PaginatedStocks, error) {
+	offset := (page - 1) * total
+
+	var count int
+
+	var query string
+	var args []interface{}
+	var countQuery string
+	var countArgs []interface{}
+
+	tx, err := conn.Begin(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("error al ejecutar la consulta: %w", err)
+		return nil, fmt.Errorf("error al iniciar la transacción: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	if search != "" {
+		query = querySearchStocks
+		countQuery = queryCountStocksSearch
+		args = []interface{}{"%" + search + "%", total, offset}
+		countArgs = []interface{}{"%" + search + "%"}
+
+	} else {
+		query = queryStocks
+		countQuery = queryCountStocks
+		args = []interface{}{total, offset}
+	}
+
+	err = tx.QueryRow(ctx, countQuery, countArgs...).Scan(&count)
+	if err != nil {
+		return nil, fmt.Errorf("error al obtener el total de registros: %w", err)
+	}
+
+	rows, err := tx.Query(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("error al ejecutar la consulta de stocks: %w", err)
 	}
 
 	defer rows.Close()
@@ -61,5 +114,19 @@ func GetStocks(ctx context.Context, conn *pgx.Conn, page, total int) ([]Stock, e
 		return nil, fmt.Errorf("error al iterar sobre las filas: %w", err)
 	}
 
-	return stocks, nil
+	if err := tx.Commit(ctx); err != nil {
+		return nil, fmt.Errorf("error al confirmar la transacción: %w", err)
+	}
+
+	pages := 1
+	if total > 0 {
+		pages = int(math.Ceil(float64(count) / float64(total)))
+	}
+
+	return &PaginatedStocks{
+		Stocks: stocks,
+		Total:  count,
+		Pages:  pages,
+		Page:   page,
+	}, nil
 }
